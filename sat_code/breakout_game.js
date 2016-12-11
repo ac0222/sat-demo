@@ -22,11 +22,11 @@ BreakoutGame.prototype.runGame = function() {
 			retval = currentScope.processFrame(deltaT); 
 			if (retval == WIN_FLAG) {
 				clearInterval(currentScope.intervalID);
-				currentScope.world.displayWinScreen();
+				currentScope.world.displayWinScreen(currentScope.canvas);
 			}
 			if (retval == LOSS_FLAG) {
 				clearInterval(currentScope.intervalID);
-				currentScope.world.displayLossScreen();
+				currentScope.world.displayLossScreen(currentScope.canvas);
 			}
 		}
 		, (1/REFRESH_RATE)*1000

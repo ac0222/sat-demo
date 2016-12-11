@@ -3,6 +3,8 @@ var World = function(pic) {
 	this.player = null;
 	this.shapes = null;
 	this.movingShapes = null;
+	this.freedomWall = null;
+	this.deathWall = null;
 	this.init();
 }
 
@@ -12,11 +14,9 @@ World.prototype.update = function(deltaT) {
 		this.shapes[i].update(deltaT);
 	}
 	this.handleCollisions();
-
+	this.removeDestroyedShapes();
 	// do win condition checking here
-	if (true) {
-		return GAME_UNFINISHED_FLAG;
-	}
+	return this.checkGameOver();
 }
 
 World.prototype.handleCollisions = function() {
@@ -74,11 +74,57 @@ World.prototype.handleCollisions = function() {
 	}
 	// now resolve the collisions
 	for (var key in collisions) {
+		var destroyFlag = null;
 		curCol = collisions[key];
-		curCol.s1.reactToCollision(curCol.mtv.scalarMultiply(1));
+		// player can't destroy shapes
+		if (curCol.s1.equals(this.player.shape) || 
+			curCol.s2.equals(this.player.shape)) {
+			destroyFlag = false;
+		} else {
+			destroyFlag = true;
+		}
+		curCol.s1.reactToCollision(curCol.mtv.scalarMultiply(1), destroyFlag);
 		// the other shape of course recives the negative of the mtv
-		curCol.s2.reactToCollision(curCol.mtv.scalarMultiply(-1));
+		curCol.s2.reactToCollision(curCol.mtv.scalarMultiply(-1), destroyFlag);
 	}
+}
+
+World.prototype.removeDestroyedShapes = function() {
+	var currentShape = null;
+	for (var i = this.shapes.length-1; i >= 0; i--) {
+		currentShape = this.shapes[i];
+		if (currentShape.destructable) {
+			if (currentShape.destroyFlag) {
+				this.shapes.splice(i, 1);
+			}
+		}
+	}
+}
+
+World.prototype.checkGameOver = function() {
+	if (this.freedomWall.destroyFlag) {
+		return WIN_FLAG;
+	} 
+	if (this.deathWall.destroyFlag) {
+		return LOSS_FLAG;
+	}
+	return GAME_UNFINISHED_FLAG;
+}
+
+World.prototype.displayWinScreen = function(canvas) {
+	var ctx2d = canvas.getContext("2d");
+	ctx2d.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+	ctx2d.font = "16px Arial";
+	ctx2d.fillStyle = "#0095DD";
+	ctx2d.fillText("YOU DEFEATED", WORLD_WIDTH/2, WORLD_HEIGHT/2);
+}
+
+World.prototype.displayLossScreen = function(canvas) {
+	var ctx2d = canvas.getContext("2d");
+	ctx2d.clearRect(0, 0, WORLD_WIDTH, WORLD_HEIGHT);
+	ctx2d.font = "16px Arial";
+	ctx2d.fillStyle = "#0095DD";
+	ctx2d.fillText("YOU DIED", WORLD_WIDTH/2, WORLD_HEIGHT/2);
 }
 
 World.prototype.render = function(canvas) {
@@ -90,114 +136,172 @@ World.prototype.render = function(canvas) {
 	}	
 }
 
-World.prototype.makeWalls = function() {
-	// the walls are actually just long thin rectangles which
-	// we collide with
-	// left wall
-	this.shapes.push(new Rectangle(5, WORLD_HEIGHT/2,
-						new Point2D(0, WORLD_HEIGHT/2),
-						0,
-						new Vector2D(0, 0, "cartesian"), 0, "static",
-						"black", "black")
-	);
-	// right wall
-	this.shapes.push(new Rectangle(5, WORLD_HEIGHT/2,
-						new Point2D(WORLD_WIDTH, WORLD_HEIGHT/2),
-						0,
-						new Vector2D(0, 0, "cartesian"), 0, "static",
-						"black", "black")
-	);
-	// top wall
-	this.shapes.push(new Rectangle(WORLD_WIDTH/2, 5,
-						new Point2D(WORLD_WIDTH/2, 0),
-						0,
-						new Vector2D(0, 0, "cartesian"), 0, "static",
-						"black", "black")
-	);
-	// bottom wall
-	this.shapes.push(new Rectangle(WORLD_WIDTH/2, 5,
-						new Point2D(WORLD_WIDTH/2, WORLD_HEIGHT),
-						0,
-						new Vector2D(0, 0, "cartesian"), 0, "static",
-						"black", "black")
-	);
+World.prototype.init = function() {
+	// initialise empty shape arrays
+	this.shapes = [];
+	this.movingShapes = [];
+
+	this.initWalls();
+	this.initStaticShapes();
+	this.initMovingShapes();
+	this.initPlayers();
 }
 
-World.prototype.init = function() {
-	// initialise the shapes
-	this.shapes = [];
-
-	// make the walls first
-	this.makeWalls();
-	// initialise the player
-	var playerShape = new Circle(5,
-				new Point2D(200, 400),
+World.prototype.initPlayers = function() {
+	var playerShape = new Rectangle(50, 5,
+				new Point2D(200, 450),
 				0,
 				new Vector2D(0, 0, "cartesian"), 0, "stick",
 				"green", "red");
-
+	playerShape.setIndestructable();
 	this.player = new Player(
 		playerShape,
 		150,
 		2.5,
 		this.pic);
-	
+
+	// add to the shapes array
+	this.shapes.push(this.player.shape);
+	// the player moves, so add their shape to the moving shape category
+	this.movingShapes.push(this.player.shape);
+}
+
+World.prototype.initMovingShapes = function() {
+	var ms1 = new Circle(10, 
+		new Point2D(200, 400),
+		0,
+		new Vector2D(180, 180, "cartesian"), 0, "bounce",
+		"green", "red");
+	ms1.setIndestructable();
+	this.movingShapes.push(ms1);
+
+	// ok, now add all these to the 'all shapes' array
+	for (var i = 0; i < this.movingShapes.length; i++) {
+		this.shapes.push(this.movingShapes[i]);
+	}
+}
+
+World.prototype.initStaticShapes = function() {
+	for (var i = 0; i < 10; i++) {
+		for (var j = 0; j < 5; j++) {
+			if (i*j % 3 == 0) {
+				this.shapes.push(new Rectangle(15, 30, 
+					new Point2D(50*i, 50*j),
+					Math.random()*2*Math.PI,
+					new Vector2D(0, 0, "cartesian"), 0, "static",
+					"green", "red"));
+			} else if (i*j % 3 == 1) {
+				this.shapes.push(new Triangle(30, 
+					new Point2D(50*i, 50*j),
+					Math.random()*2*Math.PI,
+					new Vector2D(0, 0, "cartesian"), 0, "static",
+					"green", "red"));
+			} else {
+				this.shapes.push(new Circle(30, 
+					new Point2D(50*i, 50*j),
+					0,
+					new Vector2D(0, 0, "cartesian"), 0, "static",
+					"green", "red"));
+			}
+		}
+	}
+	/*
 	this.shapes.push(new Rectangle(15, 20, 
 		new Point2D(50, 50),
 		0.75,
-		new Vector2D(75, 75, "cartesian"), 2, "bounce",
+		new Vector2D(0, 0, "cartesian"), 0, "static",
 		"green", "red"));
-	
+
+	this.shapes.push(new Rectangle(15, 20, 
+		new Point2D(50, 50),
+		0.75,
+		new Vector2D(0, 0, "cartesian"), 0, "static",
+		"green", "red"));
+
+	this.shapes.push(new Rectangle(15, 20, 
+		new Point2D(50, 50),
+		0.75,
+		new Vector2D(0, 0, "cartesian"), 0, "static",
+		"green", "red"));
+	this.shapes.push(new Rectangle(15, 20, 
+		new Point2D(50, 50),
+		0.75,
+		new Vector2D(0, 0, "cartesian"), 0, "static",
+		"green", "red"));
+	this.shapes.push(new Rectangle(15, 20, 
+		new Point2D(50, 50),
+		0.75,
+		new Vector2D(0, 0, "cartesian"), 0, "static",
+		"green", "red"));
 	this.shapes.push(new Rectangle(5, 30, 
 		new Point2D(100, 100),
 		1.212,
-		new Vector2D(80, 80, "cartesian"), 10, "bounce",
+		new Vector2D(0, 0, "cartesian"), 0, "static",
 		"green", "red"));
 	
 	this.shapes.push(new Rectangle(50, 50, 
 		new Point2D(300, 300),
 		0.34,
-		new Vector2D(50, 50, "cartesian"), -1, "bounce",
+		new Vector2D(0, 0, "cartesian"), 0, "static",
 		"green", "red"));
 	
 	this.shapes.push(new Triangle(50, 
 		new Point2D(80, 200),
 		0.34,
-		new Vector2D(200, 200, "cartesian"), 4, "bounce",
+		new Vector2D(0, 0, "cartesian"), 0, "static",
 		"green", "red"));	
-	
-	
-	this.shapes.push(new Circle(30, 
-		new Point2D(200, 100),
-		0,
-		new Vector2D(100, 100, "cartesian"), 0, "bounce",
-		"green", "red"));
-	
+	/*
 	this.shapes.push(new Circle(10, 
 		new Point2D(200, 200),
 		0,
-		new Vector2D(100, 100, "cartesian"), 0, "bounce",
+		new Vector2D(0, 0, "cartesian"), 0, "static",
 		"green", "red"));
 	
 	this.shapes.push(new Circle(20, 
 		new Point2D(300, 100),
 		0,
-		new Vector2D(200, 200, "cartesian"), 0, "bounce",
+		new Vector2D(0, 0, "cartesian"), 0, "static",
 		"green", "red"));
 
 	this.shapes.push(new Circle(80, 
 		new Point2D(100, 400),
 		0,
-		new Vector2D(50, 50, "cartesian"), 0, "bounce",
+		new Vector2D(0, 0, "cartesian"), 0, "static",
 		"green", "red"));
-	
-	// add moving shapes
-	this.movingShapes = [];
-	this.movingShapes.push(this.player.shape);
-	for (var i = 0; i < this.shapes.length; i++) {
-		if (this.shapes[i].isActive()) {
-			this.movingShapes.push(this.shapes[i]);
-		}
-	}
+	*/
 }
 
+World.prototype.initWalls = function() {
+	// the walls are actually just long thin rectangles which
+	// we collide with
+	leftWall = new Rectangle(5, WORLD_HEIGHT/2,
+						new Point2D(0, WORLD_HEIGHT/2),
+						0,
+						new Vector2D(0, 0, "cartesian"), 0, "static",
+						"black", "black");
+	leftWall.setIndestructable();
+	rightWall = new Rectangle(5, WORLD_HEIGHT/2,
+						new Point2D(WORLD_WIDTH, WORLD_HEIGHT/2),
+						0,
+						new Vector2D(0, 0, "cartesian"), 0, "static",
+						"black", "black");
+	rightWall.setIndestructable();
+	topWall = new Rectangle(WORLD_WIDTH/2, 5,
+						new Point2D(WORLD_WIDTH/2, 0),
+						0,
+						new Vector2D(0, 0, "cartesian"), 0, "static",
+						"black", "black");
+	topWall.setIndestructable();
+	bottomWall = new Rectangle(WORLD_WIDTH/2, 5,
+						new Point2D(WORLD_WIDTH/2, WORLD_HEIGHT),
+						0,
+						new Vector2D(0, 0, "cartesian"), 0, "static",
+						"black", "black");
+	bottomWall.setIndestructable();
+	this.shapes.push(leftWall);
+	this.shapes.push(rightWall);
+	this.shapes.push(topWall);
+	this.shapes.push(bottomWall);
+	this.freedomWall = topWall;
+	this.deathWall = bottomWall;
+}

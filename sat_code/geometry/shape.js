@@ -10,6 +10,9 @@ var Shape = function(centre, rotation, c1, c2, shapeType,
 	this.tvelocity = tvelocity;
 	this.rspeed = rspeed;
 	this.collisionType = collisionType;
+	this.hitCounter = 0;
+	this.destroyFlag = false;
+	this.destructable = true;
 }
 
 Shape.prototype.equals = function(other) {
@@ -35,6 +38,10 @@ Shape.prototype.equals = function(other) {
 		return false;
 	}
 	return true;
+}
+
+Shape.prototype.setIndestructable = function() {
+	this.destructable = false;
 }
 
 Shape.prototype.enterCollisionState = function() {
@@ -65,7 +72,7 @@ Shape.prototype.update = function(deltaT) {
 	}
 }
 
-Shape.prototype.reactToCollision = function(mtv) {
+Shape.prototype.reactToCollision = function(mtv, destroyFlag) {
 	if (this.collisionType == "bounce") {
 		// add the TWICE the translation vector, as we are bouncing off! 
 		this.centre = this.centre.toVector().add(mtv.scalarMultiply(2)).toPoint();
@@ -81,6 +88,8 @@ Shape.prototype.reactToCollision = function(mtv) {
 	} else {
 		console.log("unrecognized collision type of shape");
 	}
+	this.destroyFlag = destroyFlag;
+	this.hitCounter++;
 }
 
 // A bunch of class methods
