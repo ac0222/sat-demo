@@ -30,5 +30,11 @@ window.onload = function() {
 		breakoutNG.resetGame();
 	})
 	
+	// prevent arrow-key scrollinng which interferes with gameplay
+	window.addEventListener("keydown", function(e) {
+		if ([37, 38, 39, 40].indexOf(e.keyCode) > -1) {
+			e.preventDefault();
+		}
+	}, false);
 		
 }
