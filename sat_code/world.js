@@ -1,8 +1,8 @@
 var World = function(pic) {
 	this.pic = pic;
 	this.player = null;
-	this.shapes = [];
-	this.movingShapes = [];
+	this.shapes = null;
+	this.movingShapes = null;
 	this.init();
 }
 
@@ -12,6 +12,11 @@ World.prototype.update = function(deltaT) {
 		this.shapes[i].update(deltaT);
 	}
 	this.handleCollisions();
+
+	// do win condition checking here
+	if (true) {
+		return GAME_UNFINISHED_FLAG;
+	}
 }
 
 World.prototype.handleCollisions = function() {
@@ -119,6 +124,9 @@ World.prototype.makeWalls = function() {
 }
 
 World.prototype.init = function() {
+	// initialise the shapes
+	this.shapes = [];
+
 	// make the walls first
 	this.makeWalls();
 	// initialise the player
@@ -134,7 +142,6 @@ World.prototype.init = function() {
 		2.5,
 		this.pic);
 	
-	// initialise the shapes
 	this.shapes.push(new Rectangle(15, 20, 
 		new Point2D(50, 50),
 		0.75,
@@ -185,6 +192,7 @@ World.prototype.init = function() {
 		"green", "red"));
 	
 	// add moving shapes
+	this.movingShapes = [];
 	this.movingShapes.push(this.player.shape);
 	for (var i = 0; i < this.shapes.length; i++) {
 		if (this.shapes[i].isActive()) {
