@@ -1,15 +1,13 @@
-var http = require('http')
-var express = require('express')
-
-var gameport = 8000;
-
-var app = express();
-var server = http.Server(app);
-
-server.listen(gameport);
+const express = require('express')
+let gameport = 8000;
+let app = express();
 
 app.use(express.static('public'));
 
-app.get('/', function(req, res) {
+app.get('/', (req, res) => {
 	res.sendFile(__dirname + '/breakout2d.html');
+});
+
+app.listen(gameport, () => {
+	console.log(`Game server listening on port ${gameport}`)
 });

@@ -17,6 +17,10 @@
   },
   "homepage": "https://github.com/ac0222/sat-demo#readme",
   "dependencies": {
-    "express": "^4.15.2"
+    "express": "^4.16.4"
+  },
+  "devDependencies": {
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0"
   }
 }
