@@ -4,6 +4,7 @@
   "description": "Separating Axis Theorem Demo",
   "main": "game_server.js",
   "scripts": {
+    "start:dev": "nodemon run game_server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -17,7 +18,8 @@
   },
   "homepage": "https://github.com/ac0222/sat-demo#readme",
   "dependencies": {
-    "express": "^4.16.4"
+    "express": "^4.16.4",
+    "nodemon": "^1.19.4"
   },
   "devDependencies": {
     "webpack": "^4.29.6",
