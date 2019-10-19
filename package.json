@@ -6,7 +6,8 @@
   "scripts": {
     "build": "webpack --mode=production",
     "build:dev": "webpack --mode=development --watch",
-    "start:dev": "nodemon run game_server.js",
+    "start": "node game_server.js",
+    "start:dev": "nodemon game_server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
