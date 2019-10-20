@@ -1,5 +1,5 @@
 const express = require('express')
-let gameport = 8000;
+const config = require('./config');
 let app = express();
 
 app.use(express.static('public'));
@@ -12,6 +12,6 @@ app.get('/breakout', (req, res) => {
 	res.sendFile(__dirname + '/views/breakout2d.html');
 })
 
-app.listen(gameport, () => {
-	console.log(`Game server listening on port ${gameport}`)
+app.listen(config.PORT, () => {
+	console.log(`Game server listening on port ${config.PORT}`)
 });
