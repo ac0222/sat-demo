@@ -1,14 +1,17 @@
 <!DOCTYPE html>
 <html>
 <head>
-	<script type="text/javascript" src='js/bundle.js'></script>
 	<title>Breakout Game</title>
+	<script type="text/javascript" src='js/bundle.js'></script>
+	<link rel="stylesheet" type="text/css" href="css/styles.css" />
 </head>
 <body>
 	<a href="/">Home</a>
-	<h1>BREAKOUT</h1>
-	<canvas id="breakout_canvas" width="400" height="500"></canvas>
-	<div>
+	<h1>Breakout</h1>
+	<div class="game-container">
+		<canvas id="breakout_canvas" width="400" height="500"></canvas>
+	</div>
+	<div class="game-controls">
 		<button id="start_game_btn">START</button>
 		<button id="stop_game_btn">STOP</button>
 		<button id="reset_game_btn">RESET</button>
