@@ -21,3 +21,17 @@ h1 {
     transition: 0.3s;
     border-radius: 5px; /* 5px rounded corners */
 }
+
+.game-container {
+    display: flex;
+    justify-content: center;
+}
+
+canvas {
+    border: solid;
+}
+
+.game-controls {
+    display: flex;
+    justify-content: center;
+}
