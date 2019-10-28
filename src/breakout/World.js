@@ -198,31 +198,124 @@ class World {
 			this.shapes.push(this.movingShapes[i]);
 		}
 	}
-
-	initStaticShapes() {
-		for (var i = 0; i < 10; i++) {
-			for (var j = 0; j < 5; j++) {
-				if (i*j % 3 == 0) {
-					this.shapes.push(new Rectangle(15, 30, 
-						new Point2D(50*i, 50*j),
-						Math.random()*2*Math.PI,
-						new Vector2D(0, 0, "cartesian"), 0, "static",
-						"green", "red"));
-				} else if (i*j % 3 == 1) {
-					this.shapes.push(new Triangle(30, 
-						new Point2D(50*i, 50*j),
-						Math.random()*2*Math.PI,
-						new Vector2D(0, 0, "cartesian"), 0, "static",
-						"green", "red"));
-				} else {
-					this.shapes.push(new Circle(30, 
-						new Point2D(50*i, 50*j),
+	level1Obstacles() {
+		let obs = []
+		// rectangles
+		for (let i = 0; i < 8; i++) {
+			for (let j = 0; j < 3; j++) {
+				if (i ==0 && j == 1) {
+					obs.push(new Circle(
+						10, 
+						new Point2D(40*j + 25, 30*i + 20),
 						0,
-						new Vector2D(0, 0, "cartesian"), 0, "static",
-						"green", "red"));
+						new Vector2D(0, 0, "cartesian"),
+						0,
+						"static",
+						"blue",
+						"red"));
+					continue;
 				}
+				obs.push(new Rectangle(
+					15, 
+					8, 
+					new Point2D(40*j + 25, 30*i + 20),
+					0,
+					new Vector2D(0, 0, "cartesian"),
+					0,
+					"static",
+					"green",
+					"red"));
 			}
 		}
+		// triangles
+		for (let i = 0; i < 8; i++) {
+			for (let j = 0; j < 3; j++) {
+				if (i ==0 && j == 1) {
+					obs.push(new Circle(
+						10, 
+						new Point2D(40*j + 290, 30*i + 20),
+						45*i,
+						new Vector2D(0, 0, "cartesian"),
+						0,
+						"static",
+						"red",
+						"red"));
+					continue;
+				}
+				obs.push(new Triangle(
+					15, 
+					new Point2D(40*j + 290, 30*i + 20),
+					45*i,
+					new Vector2D(0, 0, "cartesian"),
+					0,
+					"static",
+					"green",
+					"red"));
+			}
+		}
+
+		// middle
+		for (let i = 0; i < 8; i++) {
+			obs.push(new Triangle(
+				15, 
+				new Point2D(160, 30*i + 20),
+				45*i,
+				new Vector2D(0, 0, "cartesian"),
+				0,
+				"static",
+				"green",
+				"red"));
+			obs.push(new Rectangle(
+				15, 
+				8, 
+				new Point2D(200, 30*i + 20),
+				0,
+				new Vector2D(0, 0, "cartesian"),
+				0,
+				"static",
+				"green",
+				"red"));
+			obs.push(new Circle(
+				13, 
+				new Point2D(240, 30*i + 20),
+				0,
+				new Vector2D(0, 0, "cartesian"),
+				0,
+				"static",
+				"green",
+				"red"));
+		}
+
+		return obs;
+	}
+	initStaticShapes() {
+		let l1shapes = this.level1Obstacles();
+		for (let s of l1shapes) {
+			this.shapes.push(s);
+		}
+		// for (var i = 0; i < 10; i++) {
+		// 	for (var j = 0; j < 5; j++) {
+		// 		if (i*j % 3 == 0) {
+		// 			this.shapes.push(new Rectangle(15, 30, 
+		// 				new Point2D(50*i, 50*j),
+		// 				Math.random()*2*Math.PI,
+		// 				new Vector2D(0, 0, "cartesian"), 0, "static",
+		// 				"green", "red"));
+		// 		} else if (i*j % 3 == 1) {
+		// 			this.shapes.push(new Triangle(30, 
+		// 				new Point2D(50*i, 50*j),
+		// 				Math.random()*2*Math.PI,
+		// 				new Vector2D(0, 0, "cartesian"), 0, "static",
+		// 				"green", "red"));
+		// 		} else {
+		// 			this.shapes.push(new Circle(30, 
+		// 				new Point2D(50*i, 50*j),
+		// 				0,
+		// 				new Vector2D(0, 0, "cartesian"), 0, "static",
+		// 				"green", "red"));
+		// 		}
+		// 	}
+		// }
 	}
 
 	initWalls() {
@@ -252,10 +345,27 @@ class World {
 							new Vector2D(0, 0, "cartesian"), 0, "static",
 							"black", "black");
 		bottomWall.setIndestructable();
-		this.shapes.push(leftWall);
+
+		let leftPartition = new Rectangle(5, WORLD_HEIGHT/4,
+			new Point2D(WORLD_WIDTH/3, WORLD_HEIGHT/4),
+			0,
+			new Vector2D(0, 0, "cartesian"), 0, "static",
+			"black", "black");
+		leftPartition.setIndestructable();
+		
+		let rightPartition = new Rectangle(5, WORLD_HEIGHT/4,
+			new Point2D(WORLD_WIDTH*(2/3), WORLD_HEIGHT/4),
+			0,
+			new Vector2D(0, 0, "cartesian"), 0, "static",
+			"black", "black");
+		rightPartition.setIndestructable();
+		
+		this.shapes.push(leftWall)
 		this.shapes.push(rightWall);
 		this.shapes.push(topWall);
 		this.shapes.push(bottomWall);
+		this.shapes.push(leftPartition);
+		this.shapes.push(rightPartition);
 		this.freedomWall = topWall;
 		this.deathWall = bottomWall;
 	}
