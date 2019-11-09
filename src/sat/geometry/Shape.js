@@ -1,5 +1,10 @@
 // shape super class
-import { EPS } from './constants';
+import { 
+	EPS, 
+	COLLISION_TYPES, 
+	SHAPE_TYPES, 
+	VECTOR_FORMS 
+} from './constants';
 import Interval from './Interval';
 import Point2D from './Point2D';
 import Vector2D from './Vector2D';
@@ -79,16 +84,16 @@ class Shape {
 	}
 	
 	reactToCollision(mtv, destroyFlag) {
-		if (this.collisionType == "bounce") {
+		if (this.collisionType == COLLISION_TYPES.BOUNCE) {
 			// add the TWICE the translation vector, as we are bouncing off! 
 			this.centre = this.centre.toVector().add(mtv.scalarMultiply(2)).toPoint();
 			// get the new velocity by reflecting across the mtv
 			this.tvelocity = this.tvelocity.reflectAcross(mtv);
 	
-		} else if (this.collisionType == "stick") {
+		} else if (this.collisionType == COLLISION_TYPES.STICK) {
 			this.centre = this.centre.toVector().add(mtv).toPoint();
 	
-		} else if (this.collisionType == "static") {
+		} else if (this.collisionType == COLLISION_TYPES.STATIC) {
 			// do nothing
 	
 		} else {
@@ -141,17 +146,17 @@ class Shape {
 		ctx.closePath();
 	}
 	
-	// Collision detection
+	// Collision detection functions
 	static projectShapeFromPoint(shape, point, direction) {
 		let scalarProjections = [];
-		if (shape.shapeType == "circle") {
-			let circCentre = new Vector2D(shape.centre.x, shape.centre.y, "cartesian");
+		if (shape.shapeType == SHAPE_TYPES.CIRCLE) {
+			let circCentre = new Vector2D(shape.centre.x, shape.centre.y, VECTOR_FORMS.CARTESIAN);
 			let centreToPoint = circCentre.subtract(point);
 			scalarProjections.push(
 				centreToPoint.scalarProjection(direction) - shape.radius);
 			scalarProjections.push(
 				centreToPoint.scalarProjection(direction) + shape.radius);
-		} else if (shape.shapeType == "polygon") {
+		} else if (shape.shapeType == SHAPE_TYPES.POLYGON) {
 			let polyVecs = [];
 			let polyVertices = shape.getVertices();
 			for (let i = 0; i < polyVertices.length; i++) {
@@ -168,6 +173,7 @@ class Shape {
 		return scalarProjections;
 	}
 	
+	// Collision detection between two convex polygons
 	static ppCollisionDetection(poly1, poly2) {
 		var poly1Centre = poly1.centre.toVector();
 		var poly2Centre = poly2.centre.toVector();
@@ -221,7 +227,7 @@ class Shape {
 		// be the negative vector returned here!
 	}
 	
-	// collision detection between polygon and circle
+	// Collision detection between polygon and circle
 	static pcCollisionDetection(poly, circ) {
 		var polyVertices = poly.getVertices();
 		var polyCentre = poly.centre.toVector();

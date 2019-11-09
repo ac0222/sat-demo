@@ -1,12 +1,12 @@
 // rectangle class
-import { EPS } from './constants';
+import { EPS, SHAPE_TYPES } from './constants';
 import Vector2D from './Vector2D';
 import Shape from './Shape';
 
 class Rectangle extends Shape {
 	constructor(halfWidth, halfHeight, centre, 
 		rotation, tvel, rspeed, collisionType, c1, c2) {
-		super(centre, rotation, c1, c2, "polygon", 
+		super(centre, rotation, c1, c2, SHAPE_TYPES.POLYGON, 
 			tvel, rspeed, collisionType);
 		this.halfWidth = halfWidth;
 		this.halfHeight = halfHeight;

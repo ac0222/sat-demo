@@ -1,4 +1,4 @@
-import { EPS } from './constants';
+import { EPS, VECTOR_FORMS } from './constants';
 import Vector2D from './Vector2D';
 
 class Point2D {
@@ -14,7 +14,7 @@ class Point2D {
 	}
 	
 	toVector() {
-		return new Vector2D(this.x, this.y, "cartesian");
+		return new Vector2D(this.x, this.y, VECTOR_FORMS.CARTESIAN);
 	}
 	
 	equals(other) {
