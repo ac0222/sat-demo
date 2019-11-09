@@ -4,6 +4,11 @@ import Shape from '../sat/geometry/Shape';
 import Rectangle from '../sat/geometry/Rectangle';
 import Circle from '../sat/geometry/Circle';
 import Triangle from '../sat/geometry/Triangle';
+import {
+	VECTOR_FORMS,
+	SHAPE_TYPES,
+	COLLISION_TYPES
+} from '../sat/geometry/constants';
 import Player from './Player';
 import {
 	WIN_FLAG, 
@@ -52,19 +57,7 @@ class World {
 				currentShape = this.shapes[j];
 				// dont compare the same shape to itself
 				if (!cms.equals(currentShape)) {
-					if (cms.shapeType == "circle") {
-						if (currentShape.shapeType == "circle") {
-							mtv = Shape.ccCollisionDetection(currentShape, cms);
-						} else {
-							mtv = Shape.pcCollisionDetection(currentShape, cms);
-						}
-					} else {
-						if (currentShape.shapeType == "circle") {
-							mtv = Shape.pcCollisionDetection(cms, currentShape);
-						} else {
-							mtv = Shape.ppCollisionDetection(cms, currentShape);
-						}
-					}
+					mtv = Shape.collisionDetection(currentShape, cms);
 
 					if (mtv != null) {
 						let newCol = {};
@@ -169,7 +162,7 @@ class World {
 		var playerShape = new Rectangle(50, 5,
 					new Point2D(200, 450),
 					0,
-					new Vector2D(0, 0, "cartesian"), 0, "stick",
+					new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STICK,
 					"green", "red");
 		playerShape.setIndestructable();
 		this.player = new Player(
@@ -188,7 +181,7 @@ class World {
 		var ms1 = new Circle(10, 
 			new Point2D(200, 400),
 			0,
-			new Vector2D(180, 180, "cartesian"), 0, "bounce",
+			new Vector2D(180, 180, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.BOUNCE,
 			"green", "red");
 		ms1.setIndestructable();
 		this.movingShapes.push(ms1);
@@ -208,9 +201,9 @@ class World {
 						10, 
 						new Point2D(40*j + 25, 30*i + 20),
 						0,
-						new Vector2D(0, 0, "cartesian"),
+						new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN),
 						0,
-						"static",
+						COLLISION_TYPES.STATIC,
 						"blue",
 						"red"));
 					continue;
@@ -220,9 +213,9 @@ class World {
 					8, 
 					new Point2D(40*j + 25, 30*i + 20),
 					0,
-					new Vector2D(0, 0, "cartesian"),
+					new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN),
 					0,
-					"static",
+					COLLISION_TYPES.STATIC,
 					"green",
 					"red"));
 			}
@@ -235,9 +228,9 @@ class World {
 						10, 
 						new Point2D(40*j + 290, 30*i + 20),
 						45*i,
-						new Vector2D(0, 0, "cartesian"),
+						new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN),
 						0,
-						"static",
+						COLLISION_TYPES.STATIC,
 						"red",
 						"red"));
 					continue;
@@ -246,9 +239,9 @@ class World {
 					15, 
 					new Point2D(40*j + 290, 30*i + 20),
 					45*i,
-					new Vector2D(0, 0, "cartesian"),
+					new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN),
 					0,
-					"static",
+					COLLISION_TYPES.STATIC,
 					"green",
 					"red"));
 			}
@@ -260,9 +253,9 @@ class World {
 				15, 
 				new Point2D(160, 30*i + 20),
 				45*i,
-				new Vector2D(0, 0, "cartesian"),
+				new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN),
 				0,
-				"static",
+				COLLISION_TYPES.STATIC,
 				"green",
 				"red"));
 			obs.push(new Rectangle(
@@ -270,52 +263,30 @@ class World {
 				8, 
 				new Point2D(200, 30*i + 20),
 				0,
-				new Vector2D(0, 0, "cartesian"),
+				new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN),
 				0,
-				"static",
+				COLLISION_TYPES.STATIC,
 				"green",
 				"red"));
 			obs.push(new Circle(
 				13, 
 				new Point2D(240, 30*i + 20),
 				0,
-				new Vector2D(0, 0, "cartesian"),
+				new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN),
 				0,
-				"static",
+				COLLISION_TYPES.STATIC,
 				"green",
 				"red"));
 		}
 
 		return obs;
 	}
+
 	initStaticShapes() {
 		let l1shapes = this.level1Obstacles();
 		for (let s of l1shapes) {
 			this.shapes.push(s);
 		}
-		// for (var i = 0; i < 10; i++) {
-		// 	for (var j = 0; j < 5; j++) {
-		// 		if (i*j % 3 == 0) {
-		// 			this.shapes.push(new Rectangle(15, 30, 
-		// 				new Point2D(50*i, 50*j),
-		// 				Math.random()*2*Math.PI,
-		// 				new Vector2D(0, 0, "cartesian"), 0, "static",
-		// 				"green", "red"));
-		// 		} else if (i*j % 3 == 1) {
-		// 			this.shapes.push(new Triangle(30, 
-		// 				new Point2D(50*i, 50*j),
-		// 				Math.random()*2*Math.PI,
-		// 				new Vector2D(0, 0, "cartesian"), 0, "static",
-		// 				"green", "red"));
-		// 		} else {
-		// 			this.shapes.push(new Circle(30, 
-		// 				new Point2D(50*i, 50*j),
-		// 				0,
-		// 				new Vector2D(0, 0, "cartesian"), 0, "static",
-		// 				"green", "red"));
-		// 		}
-		// 	}
-		// }
 	}
 
 	initWalls() {
@@ -324,39 +295,37 @@ class World {
 		let leftWall = new Rectangle(5, WORLD_HEIGHT/2,
 							new Point2D(0, WORLD_HEIGHT/2),
 							0,
-							new Vector2D(0, 0, "cartesian"), 0, "static",
+							new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STATIC,
 							"black", "black");
 		leftWall.setIndestructable();
 		let rightWall = new Rectangle(5, WORLD_HEIGHT/2,
 							new Point2D(WORLD_WIDTH, WORLD_HEIGHT/2),
 							0,
-							new Vector2D(0, 0, "cartesian"), 0, "static",
+							new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STATIC,
 							"black", "black");
 		rightWall.setIndestructable();
 		let topWall = new Rectangle(WORLD_WIDTH/2, 5,
 							new Point2D(WORLD_WIDTH/2, 0),
 							0,
-							new Vector2D(0, 0, "cartesian"), 0, "static",
+							new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STATIC,
 							"black", "black");
-		topWall.setIndestructable();
 		let bottomWall = new Rectangle(WORLD_WIDTH/2, 5,
 							new Point2D(WORLD_WIDTH/2, WORLD_HEIGHT),
 							0,
-							new Vector2D(0, 0, "cartesian"), 0, "static",
+							new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STATIC,
 							"black", "black");
-		bottomWall.setIndestructable();
 
 		let leftPartition = new Rectangle(5, WORLD_HEIGHT/4,
 			new Point2D(WORLD_WIDTH/3, WORLD_HEIGHT/4),
 			0,
-			new Vector2D(0, 0, "cartesian"), 0, "static",
+			new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STATIC,
 			"black", "black");
 		leftPartition.setIndestructable();
 		
 		let rightPartition = new Rectangle(5, WORLD_HEIGHT/4,
 			new Point2D(WORLD_WIDTH*(2/3), WORLD_HEIGHT/4),
 			0,
-			new Vector2D(0, 0, "cartesian"), 0, "static",
+			new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STATIC,
 			"black", "black");
 		rightPartition.setIndestructable();
 		

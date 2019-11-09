@@ -305,6 +305,24 @@ class Shape {
 			return null;
 		}
 	}
+
+	static collisionDetection(shape1, shape2) {
+		if ((shape1.shapeType === SHAPE_TYPES.CIRCLE) &&
+		(shape2.shapeType === SHAPE_TYPES.CIRCLE)) {
+			return this.ccCollisionDetection(shape1, shape2)
+		} else if ((shape1.shapeType === SHAPE_TYPES.POLYGON) &&
+		(shape2.shapeType === SHAPE_TYPES.POLYGON)) {
+			return this.ppCollisionDetection(shape1, shape1);
+		} else {
+			if (shape1.shapeType === SHAPE_TYPES.POLYGON) {
+				// shape2 must be the circle
+				return this.pcCollisionDetection(shape1, shape2);
+			} else {
+				// shape1 must be the circle, so shape2 must be the polygon
+				return this.pcCollisionDetection(shape2, shape1);
+			}
+		}
+	}
 }
 
 export default Shape;
