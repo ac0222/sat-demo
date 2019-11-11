@@ -22,92 +22,90 @@ import {
 class World {
 	constructor(pic) {
 		this.pic = pic;
+
+		// gameobjects
 		this.player = null;
-		this.shapes = null;
-		this.movingShapes = null;
+		this.ball = null;
+		this.bricks = [];
+		this.walls = [];
 		this.freedomWall = null;
 		this.deathWall = null;
+		
 		this.init();
 	}
 
 
 	update(deltaT) {
 		this.player.update(deltaT);
-		for (let i = 0; i < this.shapes.length; i++) {
-			this.shapes[i].update(deltaT);
-		}
-		this.handleCollisions();
+		this.ball.update(deltaT);
+		let collisions = this.detectAllCollisions();
+		this.resolveCollisions(collisions);
 		this.removeDestroyedShapes();
 		// do win condition checking here
 		return this.checkGameOver();
 	}
 
-	handleCollisions() {
-		let cms = null;
-		let currentShape = null;
-		let collisions = {};
+	detectAllCollisions() {
+		let collisions = [];
 		let curCol = null;
 
-		// first, find all the collisions
-		for (let i = 0; i < this.movingShapes.length; i++) {
-			cms = this.movingShapes[i];
-			for (let j = 0; j < this.shapes.length; j++) {
-				// we need a new mtv every time
-				let mtv = null;
-				currentShape = this.shapes[j];
-				// dont compare the same shape to itself
-				if (!cms.equals(currentShape)) {
-					mtv = Shape.collisionDetection(currentShape, cms);
+		// collisions between moving shapes
+		curCol = Shape.collisionDetection(this.ball, this.player.shape);
+		if (curCol !== null) {
+			collisions.push(curCol);
+		}
 
-					if (mtv != null) {
-						let newCol = {};
-						if (cms.shapeType == "circle") {
-							newCol.s1 = currentShape;
-							newCol.s2 = cms;
-						} else {
-							newCol.s1 = cms;
-							newCol.s2 = currentShape;
-						}
-						newCol.mtv = mtv;
-						// only allow 2 shapes to collide once per frame
-						// create a key out of stringifying the two shapes
-						let newKey = JSON.stringify(newCol.s1) + 
-										JSON.stringify(newCol.s2);
-						let possibleVariant = JSON.stringify(newCol.s2) + 
-												JSON.stringify(newCol.s1);
-						if (!(newKey in collisions) && 
-							!(possibleVariant in collisions)) {
-							collisions[newKey] = newCol;
-						}
-					}
+		let movingShapes = [this.ball, this.player.shape];
+		// collisions between moving shapes and static shapes
+		for (let ms of movingShapes) {
+			// moving shapes and obstacles
+			for (let brick of this.bricks) {
+				curCol = Shape.collisionDetection(ms, brick);
+				if (curCol !== null) {
+					collisions.push(curCol);
+				}
+			}
+			// moving shapes and walls
+			for (let wall of this.walls) {
+				curCol = Shape.collisionDetection(ms, wall);
+				if (curCol !== null) {
+					collisions.push(curCol);
 				}
 			}
 		}
+		return collisions;
+	}
+
+	resolveCollisions(collisions) {
 		// now resolve the collisions
-		for (let key in collisions) {
+		for (let curCol of collisions) {
 			let destroyFlag = null;
-			curCol = collisions[key];
 			// player can't destroy shapes
-			if (curCol.s1.equals(this.player.shape) || 
-				curCol.s2.equals(this.player.shape)) {
+			if (curCol.shape1.equals(this.player.shape) || 
+				curCol.shape2.equals(this.player.shape)) {
 				destroyFlag = false;
 			} else {
 				destroyFlag = true;
 			}
-			curCol.s1.reactToCollision(curCol.mtv.scalarMultiply(1), destroyFlag);
+			curCol.shape1.reactToCollision(curCol.mtv.scalarMultiply(1), destroyFlag);
 			// the other shape of course recives the negative of the mtv
-			curCol.s2.reactToCollision(curCol.mtv.scalarMultiply(-1), destroyFlag);
+			curCol.shape2.reactToCollision(curCol.mtv.scalarMultiply(-1), destroyFlag);
 		}
 	}
 
 	removeDestroyedShapes() {
-		let currentShape = null;
-		for (let i = this.shapes.length-1; i >= 0; i--) {
-			currentShape = this.shapes[i];
-			if (currentShape.destructable) {
-				if (currentShape.destroyFlag) {
-					this.shapes.splice(i, 1);
-				}
+		let currentBrick = null;
+		for (let i = this.bricks.length-1; i >= 0; i--) {
+			currentBrick = this.bricks[i];
+			if (currentBrick.destructable && currentBrick.destroyFlag) {
+				this.bricks.splice(i, 1);
+			}
+		}
+		let currentWall = null;
+		for (let i = this.walls.length-1; i >= 0; i--) {
+			currentWall = this.walls[i];
+			if (currentWall.destructable && currentWall.destroyFlag) {
+				this.walls.splice(i, 1);
 			}
 		}
 	}
@@ -142,19 +140,27 @@ class World {
 		var ctx = canvas.getContext('2d');
 		ctx.clearRect(0, 0, canvas.width, canvas.height);
 		this.player.render(ctx);
-		for (var i = 0; i < this.shapes.length; i++) {
-			this.shapes[i].render(ctx);
+		this.ball.render(ctx)
+		for (let brick of this.bricks) {
+			brick.render(ctx);
+		}
+		for (let wall of this.walls) {
+			wall.render(ctx);
 		}	
 	}
 
 	init() {
-		// initialise empty shape arrays
-		this.shapes = [];
-		this.movingShapes = [];
+		// reset everything
+		this.player = null;
+		this.ball = null;
+		this.bricks = [];
+		this.walls = [];
+		this.freedomWall = null;
+		this.deathWall = null;
 
 		this.initWalls();
-		this.initStaticShapes();
-		this.initMovingShapes();
+		this.initBricks();
+		this.initBall();
 		this.initPlayers();
 	}
 
@@ -170,27 +176,18 @@ class World {
 			150,
 			2.5,
 			this.pic);
-
-		// add to the shapes array
-		this.shapes.push(this.player.shape);
-		// the player moves, so add their shape to the moving shape category
-		this.movingShapes.push(this.player.shape);
 	}
 
-	initMovingShapes() {
+	initBall() {
 		var ms1 = new Circle(10, 
 			new Point2D(200, 400),
 			0,
 			new Vector2D(180, 180, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.BOUNCE,
 			"green", "red");
 		ms1.setIndestructable();
-		this.movingShapes.push(ms1);
-
-		// ok, now add all these to the 'all shapes' array
-		for (var i = 0; i < this.movingShapes.length; i++) {
-			this.shapes.push(this.movingShapes[i]);
-		}
+		this.ball = ms1;
 	}
+
 	level1Obstacles() {
 		let obs = []
 		// rectangles
@@ -282,10 +279,10 @@ class World {
 		return obs;
 	}
 
-	initStaticShapes() {
+	initBricks() {
 		let l1shapes = this.level1Obstacles();
 		for (let s of l1shapes) {
-			this.shapes.push(s);
+			this.bricks.push(s);
 		}
 	}
 
@@ -329,12 +326,13 @@ class World {
 			"black", "black");
 		rightPartition.setIndestructable();
 		
-		this.shapes.push(leftWall)
-		this.shapes.push(rightWall);
-		this.shapes.push(topWall);
-		this.shapes.push(bottomWall);
-		this.shapes.push(leftPartition);
-		this.shapes.push(rightPartition);
+		this.walls.push(leftWall)
+		this.walls.push(rightWall);
+		this.walls.push(topWall);
+		this.walls.push(bottomWall);
+		this.walls.push(leftPartition);
+		this.walls.push(rightPartition);
+
 		this.freedomWall = topWall;
 		this.deathWall = bottomWall;
 	}

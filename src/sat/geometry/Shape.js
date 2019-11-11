@@ -8,6 +8,7 @@ import {
 import Interval from './Interval';
 import Point2D from './Point2D';
 import Vector2D from './Vector2D';
+import Collision from './Collision';
 
 class Shape {
 	constructor(centre, rotation, c1, c2, shapeType, 
@@ -219,12 +220,14 @@ class Shape {
 		if (poly1Centre.add(mtv).subtract(poly2Centre).magnitude() > 
 			distanceBetweenCentres) {
 			// after we move along the mtv, the centres should be further away
-			return mtv;
+			mtv = mtv;
 		} else {
-			return mtv.scalarMultiply(-1);
+			mtv = mtv.scalarMultiply(-1);
 		}
 		// returns mtv needed to move polygon1!!!! the mtv to move polygon2 will
 		// be the negative vector returned here!
+		return new Collision(poly1, poly2, mtv);
+		
 	}
 	
 	// Collision detection between polygon and circle
@@ -278,10 +281,11 @@ class Shape {
 		if (polyCentre.add(mtv).subtract(circCentre).magnitude() > 
 			pcToCc.magnitude()) {
 			// after we move along the mtv, the centres should be further away
-			return mtv;
+			mtv = mtv;
 		} else {
-			return mtv.scalarMultiply(-1);
+			mtv = mtv.scalarMultiply(-1);
 		}
+		return new Collision(poly, circ, mtv);
 	}
 	
 	// collision detection between 2 circles
@@ -297,10 +301,11 @@ class Shape {
 			if (circ1Centre.add(mtv).subtract(circ2Centre).magnitude >
 				c2c.magnitude()) {
 				// after we move along mtv, the centres should be further away
-				return mtv;
+				mtv = mtv;
 			} else {
-				return mtv.scalarMultiply(-1);
+				mtv = mtv.scalarMultiply(-1);
 			}
+			return new Collision(circ1, circ2, mtv);
 		} else {
 			return null;
 		}
@@ -312,7 +317,7 @@ class Shape {
 			return this.ccCollisionDetection(shape1, shape2)
 		} else if ((shape1.shapeType === SHAPE_TYPES.POLYGON) &&
 		(shape2.shapeType === SHAPE_TYPES.POLYGON)) {
-			return this.ppCollisionDetection(shape1, shape1);
+			return this.ppCollisionDetection(shape1, shape2);
 		} else {
 			if (shape1.shapeType === SHAPE_TYPES.POLYGON) {
 				// shape2 must be the circle
