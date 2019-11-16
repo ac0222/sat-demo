@@ -1,8 +1,14 @@
 // shape super class
-import { EPS } from './constants';
+import { 
+	EPS, 
+	COLLISION_TYPES, 
+	SHAPE_TYPES, 
+	VECTOR_FORMS 
+} from './constants';
 import Interval from './Interval';
 import Point2D from './Point2D';
 import Vector2D from './Vector2D';
+import Collision from './Collision';
 
 class Shape {
 	constructor(centre, rotation, c1, c2, shapeType, 
@@ -79,16 +85,16 @@ class Shape {
 	}
 	
 	reactToCollision(mtv, destroyFlag) {
-		if (this.collisionType == "bounce") {
+		if (this.collisionType == COLLISION_TYPES.BOUNCE) {
 			// add the TWICE the translation vector, as we are bouncing off! 
 			this.centre = this.centre.toVector().add(mtv.scalarMultiply(2)).toPoint();
 			// get the new velocity by reflecting across the mtv
 			this.tvelocity = this.tvelocity.reflectAcross(mtv);
 	
-		} else if (this.collisionType == "stick") {
+		} else if (this.collisionType == COLLISION_TYPES.STICK) {
 			this.centre = this.centre.toVector().add(mtv).toPoint();
 	
-		} else if (this.collisionType == "static") {
+		} else if (this.collisionType == COLLISION_TYPES.STATIC) {
 			// do nothing
 	
 		} else {
@@ -141,17 +147,17 @@ class Shape {
 		ctx.closePath();
 	}
 	
-	// Collision detection
+	// Collision detection functions
 	static projectShapeFromPoint(shape, point, direction) {
 		let scalarProjections = [];
-		if (shape.shapeType == "circle") {
-			let circCentre = new Vector2D(shape.centre.x, shape.centre.y, "cartesian");
+		if (shape.shapeType == SHAPE_TYPES.CIRCLE) {
+			let circCentre = new Vector2D(shape.centre.x, shape.centre.y, VECTOR_FORMS.CARTESIAN);
 			let centreToPoint = circCentre.subtract(point);
 			scalarProjections.push(
 				centreToPoint.scalarProjection(direction) - shape.radius);
 			scalarProjections.push(
 				centreToPoint.scalarProjection(direction) + shape.radius);
-		} else if (shape.shapeType == "polygon") {
+		} else if (shape.shapeType == SHAPE_TYPES.POLYGON) {
 			let polyVecs = [];
 			let polyVertices = shape.getVertices();
 			for (let i = 0; i < polyVertices.length; i++) {
@@ -168,6 +174,7 @@ class Shape {
 		return scalarProjections;
 	}
 	
+	// Collision detection between two convex polygons
 	static ppCollisionDetection(poly1, poly2) {
 		var poly1Centre = poly1.centre.toVector();
 		var poly2Centre = poly2.centre.toVector();
@@ -213,15 +220,17 @@ class Shape {
 		if (poly1Centre.add(mtv).subtract(poly2Centre).magnitude() > 
 			distanceBetweenCentres) {
 			// after we move along the mtv, the centres should be further away
-			return mtv;
+			mtv = mtv;
 		} else {
-			return mtv.scalarMultiply(-1);
+			mtv = mtv.scalarMultiply(-1);
 		}
 		// returns mtv needed to move polygon1!!!! the mtv to move polygon2 will
 		// be the negative vector returned here!
+		return new Collision(poly1, poly2, mtv);
+		
 	}
 	
-	// collision detection between polygon and circle
+	// Collision detection between polygon and circle
 	static pcCollisionDetection(poly, circ) {
 		var polyVertices = poly.getVertices();
 		var polyCentre = poly.centre.toVector();
@@ -272,10 +281,11 @@ class Shape {
 		if (polyCentre.add(mtv).subtract(circCentre).magnitude() > 
 			pcToCc.magnitude()) {
 			// after we move along the mtv, the centres should be further away
-			return mtv;
+			mtv = mtv;
 		} else {
-			return mtv.scalarMultiply(-1);
+			mtv = mtv.scalarMultiply(-1);
 		}
+		return new Collision(poly, circ, mtv);
 	}
 	
 	// collision detection between 2 circles
@@ -291,9 +301,49 @@ class Shape {
 			if (circ1Centre.add(mtv).subtract(circ2Centre).magnitude >
 				c2c.magnitude()) {
 				// after we move along mtv, the centres should be further away
-				return mtv;
+				mtv = mtv;
 			} else {
-				return mtv.scalarMultiply(-1);
+				mtv = mtv.scalarMultiply(-1);
+			}
+			return new Collision(circ1, circ2, mtv);
+		} else {
+			return null;
+		}
+	}
+
+	static collisionDetection(obj1, obj2, opts) {
+		let shape1 = null;
+		let shape2 = null;
+		let collision = null;
+		
+		if (opts && opts.inputType === 'shape') {
+			shape1 = obj1;
+			shape2 = obj2;
+		} else {
+			shape1 = obj1.shape;
+			shape2 = obj2.shape;
+		}
+
+		if ((shape1.shapeType === SHAPE_TYPES.CIRCLE) &&
+		(shape2.shapeType === SHAPE_TYPES.CIRCLE)) {
+			collision = this.ccCollisionDetection(shape1, shape2)
+		} else if ((shape1.shapeType === SHAPE_TYPES.POLYGON) &&
+		(shape2.shapeType === SHAPE_TYPES.POLYGON)) {
+			collision = this.ppCollisionDetection(shape1, shape2);
+		} else {
+			if (shape1.shapeType === SHAPE_TYPES.POLYGON) {
+				// shape2 must be the circle
+				collision = this.pcCollisionDetection(shape1, shape2);
+			} else {
+				// shape1 must be the circle, so shape2 must be the polygon
+				collision = this.pcCollisionDetection(shape2, shape1);
+			}
+		}
+		if (collision) {
+			if (collision.collider1.equals(shape1)) {
+				return new Collision(obj1, obj2, collision.mtv);
+			} else {
+				return new Collision(obj2, obj1, collision.mtv);
 			}
 		} else {
 			return null;

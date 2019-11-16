@@ -1,9 +1,9 @@
-import { EPS } from './constants';
+import { EPS, VECTOR_FORMS } from './constants';
 import Point2D from './Point2D';
 
 class Vector2D {
 	constructor(a, b, type) {
-		if (type == "polar") {
+		if (type == VECTOR_FORMS.POLAR) {
 			this.r = a;
 			this.theta = b;
 			[this.x1, this.x2] = this.toCartesian();
@@ -94,30 +94,30 @@ class Vector2D {
 	add(v2) {
 		let newx1 = this.x1 + v2.x1;
 		let newx2 = this.x2 + v2.x2;
-		return new Vector2D(newx1, newx2, "cartesian");
+		return new Vector2D(newx1, newx2, VECTOR_FORMS.CARTESIAN);
 	}
 	
 	// return a new vector
 	subtract(v2) {
 		let newx1 = this.x1 - v2.x1;
 		let newx2 = this.x2 - v2.x2;
-		return new Vector2D(newx1, newx2, "cartesian");
+		return new Vector2D(newx1, newx2, VECTOR_FORMS.CARTESIAN);
 	}
 	
 	// increase vector length by x
 	extend(x) {
-		return new Vector2D(this.r + Math.abs(x), this.theta, "polar");
+		return new Vector2D(this.r + Math.abs(x), this.theta, VECTOR_FORMS.POLAR);
 	}
 	
 	// decrease vector length by x
 	// if we decrease by more than the original vectors magnitude,
 	// reverse the direction and extend
 	withdraw(x) {
-		return this.add(new Vector2D(x, this.theta, "polar").rotateVector(Math.PI));
+		return this.add(new Vector2D(x, this.theta, VECTOR_FORMS.POLAR).rotateVector(Math.PI));
 	}
 	
 	scalarMultiply(x) {
-		return new Vector2D(this.x1*x, this.x2*x, "cartesian");
+		return new Vector2D(this.x1*x, this.x2*x, VECTOR_FORMS.CARTESIAN);
 	}
 	
 	// dot product of this vector with another vector
@@ -131,13 +131,13 @@ class Vector2D {
 	}
 	
 	rotateVector(angle) {
-		return new Vector2D(this.r, this.theta + angle, "polar");
+		return new Vector2D(this.r, this.theta + angle, VECTOR_FORMS.POLAR);
 	}
 	
 	// unit vector in direction of this vector
 	getUnitVector() {
 		let mag = this.magnitude();
-		return new Vector2D(this.x1/mag, this.x2/mag, "cartesian");
+		return new Vector2D(this.x1/mag, this.x2/mag, VECTOR_FORMS.CARTESIAN);
 	}
 	
 	// projection of this vector onto a vector in the direction of v2

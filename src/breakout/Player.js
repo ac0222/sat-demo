@@ -1,6 +1,10 @@
+import CollidableObject from './CollidableObject';
+import Brick from './Brick';
+import Wall from './Wall';
 // player
-class Player {
+class Player extends CollidableObject{
 	constructor(shape, tspeed, rspeed, pic) {
+		super();
 		this.shape = shape;
 		this.tspeed = tspeed;
 		this.rspeed = rspeed;
@@ -30,6 +34,12 @@ class Player {
 	
 	render(ctx) {
 		this.shape.render(ctx);
+	}
+
+	reactToCollision(mtv, otherCollidable) {
+		if (otherCollidable instanceof Brick || otherCollidable instanceof Wall) {
+			this.shape.centre = this.shape.centre.toVector().add(mtv).toPoint();
+		}
 	}
 }
 

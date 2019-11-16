@@ -1,11 +1,11 @@
 // circle class
-import { EPS } from './constants';
+import { EPS, SHAPE_TYPES } from './constants';
 import Shape from './Shape';
 
 class Circle extends Shape {
 	constructor(radius, centre, rotation, 
 		tvel, rspeed, collisionType, c1, c2) {
-		super(centre, rotation, c1, c2, "circle", 
+		super(centre, rotation, c1, c2, SHAPE_TYPES.CIRCLE, 
 			tvel, rspeed, collisionType);
 		this.radius = radius;
 	}
