@@ -20,6 +20,7 @@ import {
 	WORLD_HEIGHT,
 	WORLD_WIDTH,
 } from './constants';
+import Materials from './Materials';
 
 
 class World {
@@ -178,7 +179,7 @@ class World {
 			"green", "red");
 		ms1.setIndestructable();
 
-		this.ball = new Ball();
+		this.ball = new Ball(Materials.BRICK);
 		this.ball.shape = ms1;
 	}
 
@@ -277,7 +278,7 @@ class World {
 		let l1shapes = this.level1Obstacles();
 		let currentBrick = null;
 		for (let s of l1shapes) {
-			currentBrick = new Brick();
+			currentBrick = new Brick(Materials.STEEL);
 			currentBrick.shape = s;
 			this.bricks.push(currentBrick);
 		}

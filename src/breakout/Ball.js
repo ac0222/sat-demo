@@ -1,8 +1,9 @@
 import CollidableObject from './CollidableObject';
 
 class Ball extends CollidableObject {
-    constructor() {
+    constructor(material) {
         super();
+        this.material = material;
     }
 
     update(deltaT) {
