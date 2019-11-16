@@ -10,6 +10,9 @@ import {
 	COLLISION_TYPES
 } from '../sat/geometry/constants';
 import Player from './Player';
+import Brick from './Brick';
+import Ball from './Ball';
+import Wall from './Wall';
 import {
 	WIN_FLAG, 
 	LOSS_FLAG, 
@@ -50,14 +53,14 @@ class World {
 		let curCol = null;
 
 		// collisions between moving shapes
-		curCol = Shape.collisionDetection(this.ball, this.player.shape);
+		curCol = Shape.collisionDetection(this.ball, this.player);
 		if (curCol !== null) {
 			collisions.push(curCol);
 		}
 
-		let movingShapes = [this.ball, this.player.shape];
+		let movingObjects = [this.ball, this.player];
 		// collisions between moving shapes and static shapes
-		for (let ms of movingShapes) {
+		for (let ms of movingObjects) {
 			// moving shapes and obstacles
 			for (let brick of this.bricks) {
 				curCol = Shape.collisionDetection(ms, brick);
@@ -77,33 +80,22 @@ class World {
 	}
 
 	resolveCollisions(collisions) {
-		// now resolve the collisions
 		for (let curCol of collisions) {
-			let destroyFlag = null;
-			// player can't destroy shapes
-			if (curCol.shape1.equals(this.player.shape) || 
-				curCol.shape2.equals(this.player.shape)) {
-				destroyFlag = false;
-			} else {
-				destroyFlag = true;
-			}
-			curCol.shape1.reactToCollision(curCol.mtv.scalarMultiply(1), destroyFlag);
-			// the other shape of course recives the negative of the mtv
-			curCol.shape2.reactToCollision(curCol.mtv.scalarMultiply(-1), destroyFlag);
+			curCol.resolve();
 		}
 	}
 
 	removeDestroyedShapes() {
 		let currentBrick = null;
 		for (let i = this.bricks.length-1; i >= 0; i--) {
-			currentBrick = this.bricks[i];
+			currentBrick = this.bricks[i].shape;
 			if (currentBrick.destructable && currentBrick.destroyFlag) {
 				this.bricks.splice(i, 1);
 			}
 		}
 		let currentWall = null;
 		for (let i = this.walls.length-1; i >= 0; i--) {
-			currentWall = this.walls[i];
+			currentWall = this.walls[i].shape;
 			if (currentWall.destructable && currentWall.destroyFlag) {
 				this.walls.splice(i, 1);
 			}
@@ -111,10 +103,10 @@ class World {
 	}
 
 	checkGameOver() {
-		if (this.freedomWall.destroyFlag) {
+		if (this.freedomWall.shape.destroyFlag) {
 			return WIN_FLAG;
 		} 
-		if (this.deathWall.destroyFlag) {
+		if (this.deathWall.shape.destroyFlag) {
 			return LOSS_FLAG;
 		}
 		return GAME_UNFINISHED_FLAG;
@@ -185,7 +177,9 @@ class World {
 			new Vector2D(180, 180, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.BOUNCE,
 			"green", "red");
 		ms1.setIndestructable();
-		this.ball = ms1;
+
+		this.ball = new Ball();
+		this.ball.shape = ms1;
 	}
 
 	level1Obstacles() {
@@ -281,51 +275,69 @@ class World {
 
 	initBricks() {
 		let l1shapes = this.level1Obstacles();
+		let currentBrick = null;
 		for (let s of l1shapes) {
-			this.bricks.push(s);
+			currentBrick = new Brick();
+			currentBrick.shape = s;
+			this.bricks.push(currentBrick);
 		}
 	}
 
 	initWalls() {
 		// the walls are actually just long thin rectangles which
 		// we collide with
-		let leftWall = new Rectangle(5, WORLD_HEIGHT/2,
+		let leftWallShape = new Rectangle(5, WORLD_HEIGHT/2,
 							new Point2D(0, WORLD_HEIGHT/2),
 							0,
 							new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STATIC,
 							"black", "black");
-		leftWall.setIndestructable();
-		let rightWall = new Rectangle(5, WORLD_HEIGHT/2,
+		let rightWallShape = new Rectangle(5, WORLD_HEIGHT/2,
 							new Point2D(WORLD_WIDTH, WORLD_HEIGHT/2),
 							0,
 							new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STATIC,
 							"black", "black");
-		rightWall.setIndestructable();
-		let topWall = new Rectangle(WORLD_WIDTH/2, 5,
+		let topWallShape = new Rectangle(WORLD_WIDTH/2, 5,
 							new Point2D(WORLD_WIDTH/2, 0),
 							0,
 							new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STATIC,
 							"black", "black");
-		let bottomWall = new Rectangle(WORLD_WIDTH/2, 5,
+		let bottomWallShape = new Rectangle(WORLD_WIDTH/2, 5,
 							new Point2D(WORLD_WIDTH/2, WORLD_HEIGHT),
 							0,
 							new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STATIC,
 							"black", "black");
 
-		let leftPartition = new Rectangle(5, WORLD_HEIGHT/4,
+		let leftPartitionShape = new Rectangle(5, WORLD_HEIGHT/4,
 			new Point2D(WORLD_WIDTH/3, WORLD_HEIGHT/4),
 			0,
 			new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STATIC,
 			"black", "black");
-		leftPartition.setIndestructable();
 		
-		let rightPartition = new Rectangle(5, WORLD_HEIGHT/4,
+		let rightPartitionShape = new Rectangle(5, WORLD_HEIGHT/4,
 			new Point2D(WORLD_WIDTH*(2/3), WORLD_HEIGHT/4),
 			0,
 			new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STATIC,
 			"black", "black");
-		rightPartition.setIndestructable();
 		
+		leftWallShape.setIndestructable();
+		rightWallShape.setIndestructable();
+		leftPartitionShape.setIndestructable();
+		rightPartitionShape.setIndestructable();
+
+		let leftWall = new Wall();
+		let rightWall = new Wall();
+		let topWall = new Wall();
+		let bottomWall = new Wall();
+		let leftPartition = new Wall();
+		let rightPartition = new Wall();
+
+		leftWall.shape = leftWallShape;
+		rightWall.shape = rightWallShape;
+		topWall.shape = topWallShape;
+		bottomWall.shape = bottomWallShape;
+		leftPartition.shape = leftPartitionShape;
+		rightPartition.shape = rightPartitionShape;
+
 		this.walls.push(leftWall)
 		this.walls.push(rightWall);
 		this.walls.push(topWall);

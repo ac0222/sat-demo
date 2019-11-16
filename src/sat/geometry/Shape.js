@@ -311,21 +311,42 @@ class Shape {
 		}
 	}
 
-	static collisionDetection(shape1, shape2) {
+	static collisionDetection(obj1, obj2, opts) {
+		let shape1 = null;
+		let shape2 = null;
+		let collision = null;
+		
+		if (opts && opts.inputType === 'shape') {
+			shape1 = obj1;
+			shape2 = obj2;
+		} else {
+			shape1 = obj1.shape;
+			shape2 = obj2.shape;
+		}
+
 		if ((shape1.shapeType === SHAPE_TYPES.CIRCLE) &&
 		(shape2.shapeType === SHAPE_TYPES.CIRCLE)) {
-			return this.ccCollisionDetection(shape1, shape2)
+			collision = this.ccCollisionDetection(shape1, shape2)
 		} else if ((shape1.shapeType === SHAPE_TYPES.POLYGON) &&
 		(shape2.shapeType === SHAPE_TYPES.POLYGON)) {
-			return this.ppCollisionDetection(shape1, shape2);
+			collision = this.ppCollisionDetection(shape1, shape2);
 		} else {
 			if (shape1.shapeType === SHAPE_TYPES.POLYGON) {
 				// shape2 must be the circle
-				return this.pcCollisionDetection(shape1, shape2);
+				collision = this.pcCollisionDetection(shape1, shape2);
 			} else {
 				// shape1 must be the circle, so shape2 must be the polygon
-				return this.pcCollisionDetection(shape2, shape1);
+				collision = this.pcCollisionDetection(shape2, shape1);
 			}
+		}
+		if (collision) {
+			if (collision.collider1.equals(shape1)) {
+				return new Collision(obj1, obj2, collision.mtv);
+			} else {
+				return new Collision(obj2, obj1, collision.mtv);
+			}
+		} else {
+			return null;
 		}
 	}
 }
