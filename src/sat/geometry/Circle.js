@@ -4,9 +4,9 @@ import Shape from './Shape';
 
 class Circle extends Shape {
 	constructor(radius, centre, rotation, 
-		tvel, rspeed, collisionType, c1, c2) {
+		tvel, rspeed, c1, c2) {
 		super(centre, rotation, c1, c2, SHAPE_TYPES.CIRCLE, 
-			tvel, rspeed, collisionType);
+			tvel, rspeed);
 		this.radius = radius;
 	}
 

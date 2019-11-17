@@ -5,9 +5,9 @@ import Shape from './Shape';
 
 class Rectangle extends Shape {
 	constructor(halfWidth, halfHeight, centre, 
-		rotation, tvel, rspeed, collisionType, c1, c2) {
+		rotation, tvel, rspeed, c1, c2) {
 		super(centre, rotation, c1, c2, SHAPE_TYPES.POLYGON, 
-			tvel, rspeed, collisionType);
+			tvel, rspeed);
 		this.halfWidth = halfWidth;
 		this.halfHeight = halfHeight;
 	}

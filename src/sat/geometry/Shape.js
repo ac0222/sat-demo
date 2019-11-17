@@ -1,7 +1,6 @@
 // shape super class
 import { 
 	EPS, 
-	COLLISION_TYPES, 
 	SHAPE_TYPES, 
 	VECTOR_FORMS 
 } from './constants';
@@ -12,7 +11,7 @@ import Collision from './Collision';
 
 class Shape {
 	constructor(centre, rotation, c1, c2, shapeType, 
-		tvelocity, rspeed, collisionType) {
+		tvelocity, rspeed) {
 		this.centre = centre;
 		this.rotation = rotation;
 		this.c1 = c1;
@@ -21,7 +20,7 @@ class Shape {
 		this.shapeType = shapeType;
 		this.tvelocity = tvelocity;
 		this.rspeed = rspeed;
-		this.collisionType = collisionType;
+		//this.collisionType = collisionType;
 		this.hitCounter = 0;
 		this.destroyFlag = false;
 		this.destructable = true;
@@ -46,9 +45,9 @@ class Shape {
 		if (Math.abs(this.rspeed - other.rspeed) > EPS) {
 			return false;
 		}
-		if (this.collisionType != other.collisionType) {
-			return false;
-		}
+		// if (this.collisionType != other.collisionType) {
+		// 	return false;
+		// }
 		return true;
 	}
 	
@@ -84,25 +83,25 @@ class Shape {
 		}
 	}
 	
-	reactToCollision(mtv, destroyFlag) {
-		if (this.collisionType == COLLISION_TYPES.BOUNCE) {
-			// add the TWICE the translation vector, as we are bouncing off! 
-			this.centre = this.centre.toVector().add(mtv.scalarMultiply(2)).toPoint();
-			// get the new velocity by reflecting across the mtv
-			this.tvelocity = this.tvelocity.reflectAcross(mtv);
+	// reactToCollision(mtv, destroyFlag) {
+	// 	if (this.collisionType == COLLISION_TYPES.BOUNCE) {
+	// 		// add the TWICE the translation vector, as we are bouncing off! 
+	// 		this.centre = this.centre.toVector().add(mtv.scalarMultiply(2)).toPoint();
+	// 		// get the new velocity by reflecting across the mtv
+	// 		this.tvelocity = this.tvelocity.reflectAcross(mtv);
 	
-		} else if (this.collisionType == COLLISION_TYPES.STICK) {
-			this.centre = this.centre.toVector().add(mtv).toPoint();
+	// 	} else if (this.collisionType == COLLISION_TYPES.STICK) {
+	// 		this.centre = this.centre.toVector().add(mtv).toPoint();
 	
-		} else if (this.collisionType == COLLISION_TYPES.STATIC) {
-			// do nothing
+	// 	} else if (this.collisionType == COLLISION_TYPES.STATIC) {
+	// 		// do nothing
 	
-		} else {
-			console.log("unrecognized collision type of shape");
-		}
-		this.destroyFlag = destroyFlag;
-		this.hitCounter++;
-	}
+	// 	} else {
+	// 		console.log("unrecognized collision type of shape");
+	// 	}
+	// 	this.destroyFlag = destroyFlag;
+	// 	this.hitCounter++;
+	// }
 	
 	// A bunch of class methods
 	static getEdgeVectors(vertices) {
@@ -244,7 +243,6 @@ class Shape {
 		for (var i = 0; i < polyVertices.length; i++) {
 			distances[i] = circCentre.subtract(polyVertices[i]).magnitude();
 		}
-	
 		var maxIndex = distances.indexOf(Math.max.apply(Math, distances));
 		directions.push(circCentre.subtract(polyVertices[maxIndex]));
 	
