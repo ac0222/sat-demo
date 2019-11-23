@@ -39,15 +39,23 @@ class Ball extends CollidableObject {
         this.shape.c2 = c2;
     }
 
+    upgrade() {
+        this.material += 1;
+        this.setColours();
+    }
+
     update(deltaT) {
         this.shape.update(deltaT);
     }
     
     reactToCollision(mtv, otherCollidable) {
-        // add the TWICE the translation vector, as we are bouncing off! 
-        this.shape.centre = this.shape.centre.toVector().add(mtv.scalarMultiply(2)).toPoint();
-        // get the new velocity by reflecting across the mtv
-        this.shape.tvelocity = this.shape.tvelocity.reflectAcross(mtv);
+        // do nothing if the other collidable is a power up; just pass right through
+        if (!(otherCollidable.constructor.name === 'PowerUp')) {
+            // add the TWICE the translation vector, as we are bouncing off! 
+            this.shape.centre = this.shape.centre.toVector().add(mtv.scalarMultiply(2)).toPoint();
+            // get the new velocity by reflecting across the mtv
+            this.shape.tvelocity = this.shape.tvelocity.reflectAcross(mtv);
+        }
     }
 }
 
