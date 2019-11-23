@@ -6,8 +6,7 @@ import Circle from '../sat/geometry/Circle';
 import Triangle from '../sat/geometry/Triangle';
 import {
 	VECTOR_FORMS,
-	SHAPE_TYPES,
-	COLLISION_TYPES
+	SHAPE_TYPES
 } from '../sat/geometry/constants';
 import Player from './Player';
 import Brick from './Brick';
@@ -20,6 +19,8 @@ import {
 	WORLD_HEIGHT,
 	WORLD_WIDTH,
 } from './constants';
+import Materials from './Materials';
+import PowerUp from './PowerUp';
 
 
 class World {
@@ -160,7 +161,7 @@ class World {
 		var playerShape = new Rectangle(50, 5,
 					new Point2D(200, 450),
 					0,
-					new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STICK,
+					new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0,
 					"green", "red");
 		playerShape.setIndestructable();
 		this.player = new Player(
@@ -171,115 +172,72 @@ class World {
 	}
 
 	initBall() {
-		var ms1 = new Circle(10, 
-			new Point2D(200, 400),
-			0,
-			new Vector2D(180, 180, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.BOUNCE,
-			"green", "red");
-		ms1.setIndestructable();
-
-		this.ball = new Ball();
-		this.ball.shape = ms1;
+		this.ball = new Ball(
+			Materials.BRICK, 
+			10, 
+			new Point2D(200, 400), 
+			new Vector2D(180, 180, VECTOR_FORMS.CARTESIAN));
 	}
 
 	level1Obstacles() {
+		let numRows = 3;
+		let numCols = 3;
+		let rectangleArgs = {
+			colliderType: 'rectangle',
+			halfWidth: 15,
+			halfLength: 8
+		};
+		let triangleArgs = {
+			colliderType: 'triangle',
+			halfDistance: 15
+		};
+		let circleArgs = {
+			colliderType: 'circle', 
+			radius: 13
+		};
 		let obs = []
+		let currentBrick = null;
 		// rectangles
-		for (let i = 0; i < 8; i++) {
-			for (let j = 0; j < 3; j++) {
-				if (i ==0 && j == 1) {
-					obs.push(new Circle(
-						10, 
-						new Point2D(40*j + 25, 30*i + 20),
-						0,
-						new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN),
-						0,
-						COLLISION_TYPES.STATIC,
-						"blue",
-						"red"));
+		for (let i = 0; i < numRows; i++) {
+			for (let j = 0; j < numCols; j++) {
+				if (i == 0 && j == 1) {
+					currentBrick = new PowerUp(new Point2D(40*j + 25, 30*i + 20), circleArgs);
+					obs.push(currentBrick);
 					continue;
 				}
-				obs.push(new Rectangle(
-					15, 
-					8, 
-					new Point2D(40*j + 25, 30*i + 20),
-					0,
-					new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN),
-					0,
-					COLLISION_TYPES.STATIC,
-					"green",
-					"red"));
+				currentBrick = new Brick(Materials.BRICK, new Point2D(40*j + 25, 30*i + 20), rectangleArgs);
+				obs.push(currentBrick);
 			}
 		}
 		// triangles
-		for (let i = 0; i < 8; i++) {
-			for (let j = 0; j < 3; j++) {
+		for (let i = 0; i < numRows; i++) {
+			for (let j = 0; j < numCols; j++) {
 				if (i ==0 && j == 1) {
-					obs.push(new Circle(
-						10, 
-						new Point2D(40*j + 290, 30*i + 20),
-						45*i,
-						new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN),
-						0,
-						COLLISION_TYPES.STATIC,
-						"red",
-						"red"));
+					currentBrick = new PowerUp(new Point2D(40*j + 290, 30*i + 20), circleArgs);
+					obs.push(currentBrick);
 					continue;
 				}
-				obs.push(new Triangle(
-					15, 
-					new Point2D(40*j + 290, 30*i + 20),
-					45*i,
-					new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN),
-					0,
-					COLLISION_TYPES.STATIC,
-					"green",
-					"red"));
+				currentBrick = new Brick(Materials.STEEL, new Point2D(40*j + 290, 30*i + 20), triangleArgs);
+				obs.push(currentBrick);
 			}
 		}
 
 		// middle
-		for (let i = 0; i < 8; i++) {
-			obs.push(new Triangle(
-				15, 
-				new Point2D(160, 30*i + 20),
-				45*i,
-				new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN),
-				0,
-				COLLISION_TYPES.STATIC,
-				"green",
-				"red"));
-			obs.push(new Rectangle(
-				15, 
-				8, 
-				new Point2D(200, 30*i + 20),
-				0,
-				new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN),
-				0,
-				COLLISION_TYPES.STATIC,
-				"green",
-				"red"));
-			obs.push(new Circle(
-				13, 
-				new Point2D(240, 30*i + 20),
-				0,
-				new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN),
-				0,
-				COLLISION_TYPES.STATIC,
-				"green",
-				"red"));
+		for (let i = 0; i < numRows; i++) {
+			currentBrick = new Brick(Materials.ADAMANTIUM, new Point2D(160, 30*i + 20), triangleArgs);
+			obs.push(currentBrick);
+			currentBrick = new Brick(Materials.ADAMANTIUM, new Point2D(200, 30*i + 20), rectangleArgs);
+			obs.push(currentBrick);
+			currentBrick = new Brick(Materials.ADAMANTIUM, new Point2D(240, 30*i + 20), circleArgs);
+			obs.push(currentBrick);
 		}
-
 		return obs;
 	}
 
 	initBricks() {
 		let l1shapes = this.level1Obstacles();
-		let currentBrick = null;
 		for (let s of l1shapes) {
-			currentBrick = new Brick();
-			currentBrick.shape = s;
-			this.bricks.push(currentBrick);
+			this.bricks.push(s);
 		}
 	}
 
@@ -289,63 +247,81 @@ class World {
 		let leftWallShape = new Rectangle(5, WORLD_HEIGHT/2,
 							new Point2D(0, WORLD_HEIGHT/2),
 							0,
-							new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STATIC,
+							new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0,
 							"black", "black");
 		let rightWallShape = new Rectangle(5, WORLD_HEIGHT/2,
 							new Point2D(WORLD_WIDTH, WORLD_HEIGHT/2),
 							0,
-							new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STATIC,
+							new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0,
 							"black", "black");
-		let topWallShape = new Rectangle(WORLD_WIDTH/2, 5,
+		let topCentreWallShape = new Rectangle(WORLD_WIDTH/6, 5,
 							new Point2D(WORLD_WIDTH/2, 0),
 							0,
-							new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STATIC,
+							new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0,
 							"black", "black");
+		let topLeftWallShape = new Rectangle(
+			WORLD_WIDTH/6, 5, 
+			new Point2D(WORLD_WIDTH/6, 0),
+			0,
+			new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, "black", "black");
+		let topRightWallShape = new Rectangle(
+			WORLD_WIDTH/6, 5, 
+			new Point2D(WORLD_WIDTH*(5/6), 0),
+			0,
+			new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, "black", "black");
 		let bottomWallShape = new Rectangle(WORLD_WIDTH/2, 5,
 							new Point2D(WORLD_WIDTH/2, WORLD_HEIGHT),
 							0,
-							new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STATIC,
+							new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0,
 							"black", "black");
 
 		let leftPartitionShape = new Rectangle(5, WORLD_HEIGHT/4,
 			new Point2D(WORLD_WIDTH/3, WORLD_HEIGHT/4),
 			0,
-			new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STATIC,
+			new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0,
 			"black", "black");
 		
 		let rightPartitionShape = new Rectangle(5, WORLD_HEIGHT/4,
 			new Point2D(WORLD_WIDTH*(2/3), WORLD_HEIGHT/4),
 			0,
-			new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0, COLLISION_TYPES.STATIC,
+			new Vector2D(0, 0, VECTOR_FORMS.CARTESIAN), 0,
 			"black", "black");
 		
 		leftWallShape.setIndestructable();
 		rightWallShape.setIndestructable();
 		leftPartitionShape.setIndestructable();
 		rightPartitionShape.setIndestructable();
+		topLeftWallShape.setIndestructable();
+		topRightWallShape.setIndestructable();
 
 		let leftWall = new Wall();
 		let rightWall = new Wall();
-		let topWall = new Wall();
+		let topCentreWall = new Wall();
+		let topLeftWall = new Wall();
+		let topRightWall = new Wall();
 		let bottomWall = new Wall();
 		let leftPartition = new Wall();
 		let rightPartition = new Wall();
 
 		leftWall.shape = leftWallShape;
 		rightWall.shape = rightWallShape;
-		topWall.shape = topWallShape;
+		topCentreWall.shape = topCentreWallShape;
+		topLeftWall.shape = topLeftWallShape;
+		topRightWall.shape = topRightWallShape;
 		bottomWall.shape = bottomWallShape;
 		leftPartition.shape = leftPartitionShape;
 		rightPartition.shape = rightPartitionShape;
 
 		this.walls.push(leftWall)
 		this.walls.push(rightWall);
-		this.walls.push(topWall);
+		this.walls.push(topCentreWall);
+		this.walls.push(topLeftWall);
+		this.walls.push(topRightWall);
 		this.walls.push(bottomWall);
 		this.walls.push(leftPartition);
 		this.walls.push(rightPartition);
 
-		this.freedomWall = topWall;
+		this.freedomWall = topCentreWall;
 		this.deathWall = bottomWall;
 	}
 }

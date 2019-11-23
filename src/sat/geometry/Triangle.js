@@ -4,9 +4,9 @@ import Shape from './Shape';
 
 class Triangle extends Shape{
 	constructor(halfDistance, centre, 
-		rotation, tvel, rspeed, collisionType, c1, c2) {
+		rotation, tvel, rspeed, c1, c2) {
 		super(centre, rotation, c1, c2, SHAPE_TYPES.POLYGON, 
-			tvel, rspeed, collisionType);
+			tvel, rspeed);
 		this.halfDistance = halfDistance;
 	}
 
