@@ -1,6 +1,10 @@
 # Separating Axis Theorem Demo
 
-A javascript implementation of the Separating Axis Theorem to handle collisions in 2D. Based on information/pseudocode from these sites:
+A javascript implementation of the Separating Axis Theorem to handle collisions in 2D. 
+
+Demo is running [here](https://ac0222.github.io/sat-demo/).
+
+Based on information/pseudocode from these sites:
 - [2D collision detection - Game Development | MDN](https://developer.mozilla.org/en-US/docs/Games/Techniques/2D_collision_detection)
 - [Separating Axis Theorem (SAT) Explanation](http://www.sevenson.com.au/actionscript/sat/)
 - [N Tutorial A - Collision Detection and Response](http://www.metanetsoftware.com/technique/tutorialA.html)
