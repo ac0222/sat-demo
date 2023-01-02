@@ -23,3 +23,9 @@ Based on information/pseudocode from these sites:
 ```
 
 The app will run at http://localhost:8080
+
+## Deployment
+The website is hosted via Github pages. Update using the following command:
+```
+> git subtree push --prefix public origin gh-pages
+```
