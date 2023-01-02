@@ -6,8 +6,8 @@
   "scripts": {
     "build": "webpack --mode=production",
     "build:dev": "webpack --mode=development --watch",
-    "start": "node game_server.js",
-    "start:dev": "nodemon game_server.js",
+    "start": "http-server",
+    "start:dev": "http-server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,11 +21,10 @@
   },
   "homepage": "https://github.com/ac0222/sat-demo#readme",
   "dependencies": {
-    "dotenv": "^16.0.3",
-    "express": "^4.18.2",
-    "nodemon": "^2.0.20"
+    "dotenv": "^16.0.3"
   },
   "devDependencies": {
+    "http-server": "^14.1.1",
     "webpack": "^5.75.0",
     "webpack-cli": "^5.0.1"
   }
