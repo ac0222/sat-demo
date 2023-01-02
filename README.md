@@ -14,8 +14,8 @@ A javascript implementation of the Separating Axis Theorem to handle collisions 
 - After cloning the repo, cd into the root directory and run the following commands:
 ```
 > npm install
-> npm run build:dev
-> npm run start:dev
+> npm run build
+> npm run start
 ```
 
-You can create a copy of the `.env.example` file and remove the `.example` extension to set environment variables such as the port number. By default the app will run at http://localhost:8000
+The app will run at http://localhost:8080

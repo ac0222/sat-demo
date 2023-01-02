@@ -5,9 +5,7 @@
   "main": "game_server.js",
   "scripts": {
     "build": "webpack --mode=production",
-    "build:dev": "webpack --mode=development --watch",
     "start": "http-server",
-    "start:dev": "http-server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
